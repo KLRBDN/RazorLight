@@ -75,7 +75,7 @@ namespace RazorLight.Generation
 					$"{projectItem.GetType().FullName} with key {projectItem.Key} does not exist.");
 			}
 
-			RazorCodeDocument codeDocument = await CreateCodeDocumentAsync(projectItem);
+			RazorCodeDocument codeDocument = await CreateCodeDocumentAsync(projectItem).ConfigureAwait(false);
 			ProjectEngine.Process(codeDocument);
 
 			RazorCSharpDocument document = codeDocument.GetCSharpDocument();
@@ -116,7 +116,7 @@ namespace RazorLight.Generation
 			using (var stream = projectItem.Read())
 			{
 				RazorSourceDocument source = RazorSourceDocument.ReadFrom(stream, projectItem.Key);
-				IEnumerable<RazorSourceDocument> imports = await GetImportsAsync(projectItem);
+				IEnumerable<RazorSourceDocument> imports = await GetImportsAsync(projectItem).ConfigureAwait(false);
 
 				return RazorCodeDocument.Create(source, imports);
 			}
@@ -141,7 +141,7 @@ namespace RazorLight.Generation
 
 			var result = new List<RazorSourceDocument>();
 
-			IEnumerable<RazorLightProjectItem> importProjectItems = await Project.GetImportsAsync(projectItem.Key);
+			IEnumerable<RazorLightProjectItem> importProjectItems = await Project.GetImportsAsync(projectItem.Key).ConfigureAwait(false);
 			foreach (var importItem in importProjectItems)
 			{
 				if (importItem.Exists)

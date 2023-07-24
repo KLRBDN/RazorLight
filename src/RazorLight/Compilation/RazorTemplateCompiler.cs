@@ -108,7 +108,7 @@ namespace RazorLight.Compilation
 			// Safe races cannot be allowed when compiling Razor pages. To ensure only one compilation request succeeds
 			// per file, we'll lock the creation of a cache entry. Creating the cache entry should be very quick. The
 			// actual work for compiling files happens outside the critical section.
-			await _cacheLock.WaitAsync();
+			await _cacheLock.WaitAsync().ConfigureAwait(false);
 			try
 			{
 				string normalizedKey = GetNormalizedKey(templateKey);
@@ -116,7 +116,7 @@ namespace RazorLight.Compilation
 				// Double-checked locking to handle a possible race.
 				if (_cache.TryGetValue(normalizedKey, out Task<CompiledTemplateDescriptor> result))
 				{
-					return await result;
+					return await result.ConfigureAwait(false);
 				}
 
 				if (_precompiledViews.TryGetValue(normalizedKey, out var precompiledView))
@@ -127,7 +127,7 @@ namespace RazorLight.Compilation
 				}
 				else
 				{
-					item = await CreateRuntimeCompilationWorkItem(templateKey);
+					item = await CreateRuntimeCompilationWorkItem(templateKey).ConfigureAwait(false);
 				}
 
 				// At this point, we've decided what to do - but we should create the cache entry and
@@ -174,7 +174,7 @@ namespace RazorLight.Compilation
 
 				try
 				{
-					CompiledTemplateDescriptor descriptor = await CompileAndEmitAsync(item.ProjectItem);
+					CompiledTemplateDescriptor descriptor = await CompileAndEmitAsync(item.ProjectItem).ConfigureAwait(false);
 					descriptor.ExpirationToken = cacheEntryOptions.ExpirationTokens.FirstOrDefault();
 					taskSource.SetResult(descriptor);
 				}
@@ -198,7 +198,7 @@ namespace RazorLight.Compilation
 			else
 			{
 				string normalizedKey = GetNormalizedKey(templateKey);
-				projectItem = await _razorProject.GetItemAsync(normalizedKey);
+				projectItem = await _razorProject.GetItemAsync(normalizedKey).ConfigureAwait(false);
 			}
 
 			if (!projectItem.Exists)
@@ -219,7 +219,7 @@ namespace RazorLight.Compilation
 
 		protected virtual async Task<CompiledTemplateDescriptor> CompileAndEmitAsync(RazorLightProjectItem projectItem)
 		{
-			IGeneratedRazorTemplate generatedTemplate = await _razorSourceGenerator.GenerateCodeAsync(projectItem);
+			IGeneratedRazorTemplate generatedTemplate = await _razorSourceGenerator.GenerateCodeAsync(projectItem).ConfigureAwait(false);
 			Assembly assembly = _compiler.CompileAndEmit(generatedTemplate);
 
 			// Anything we compile from source will use Razor 2.1 and so should have the new metadata.
